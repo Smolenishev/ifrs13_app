@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fair value. Professional IFRS 13 Valuation Tool</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #ecf0f1;
+            --accent: #3498db;
+            --danger: #e74c3c;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --text: #1f2937;
+            --border-radius: 12px;
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0;
+            background-color: #f5f7fa;
+        }
+        
+        .container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+            padding: 20px;
+        }
+        .panel {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1, h2, h3 {
+            margin-top: 0;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        button {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+        button.secondary {
+            background: var(--secondary);
+            color: var(--primary);
+        }
+        button.success {
+            background: var(--success);
+        }
+        .chart-container {
+            margin-top: 20px;
+            height: 300px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background: var(--secondary);
+        }
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+        }
+        .badge-level1 { background: var(--success); }
+        .badge-level2 { background: var(--warning); }
+        .badge-level3 { background: var(--danger); }
+        .error-message {
+            color: var(--danger);
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .success-message {
+            color: var(--success);
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .weight-controls {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            border: 1px solid #eee;
+        }
+        .weight-controls button {
+            margin-bottom: 0;
+        }
+        .weight-input {
+            width: 60px !important;
+            display: inline-block;
+            margin-right: 10px;
+        }
+        .resources {
+            background: #f8f9fa;
+            padding: 20px;
+            margin: 20px;
+            border-radius: 10px;
+        }
+        .resources h2 {
+            color: var(--primary);
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: 10px;
+        }
+        .resources ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .resources li {
+            margin-bottom: 10px;
+            padding-left: 20px;
+            position: relative;
+        }
+        .resources li:before {
+            content: "•";
+            color: var(--accent);
+            font-size: 20px;
+            position: absolute;
+            left: 0;
+            top: -2px;
+        }
+        .resources a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+        .resources a:hover {
+            text-decoration: underline;
+        }
+        header {
+            background-color: var(--secondary);            
+            padding: 12px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header-content h1 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+        footer {
+            background: #1f2937;
+            color: #ffffff;
+            padding: 1.5rem;
+            text-align: center;
+            font-size: 0.9rem;
+            margin-top: auto;
+        }
+        footer a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        footer a:hover {
+            text-decoration: underline;
+        }
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+        .disclaimer {
+            font-size: 0.8rem;
+            color: #9ca3af;
+            text-align: center;
+            padding: 1rem;
+            background: #f9fafb;
+            border-top: 1px solid #e5e7eb;
+            margin-top: auto;
+        }
+        .disclaimer p {
+            margin-bottom: 0.5rem;
+        }
+        .disclaimer a {
+            color: #3b82f6;
+            text-decoration: none;
+        }
+        .disclaimer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <h1>Расчет справедливой стоимости в соответствии с IFRS 13</h1>
+        </div>
+    </header>
+    <div class="container">
+        <!-- DCF Параметры -->
+        <div class="panel">
+            <h2>Доходный подход (DCF)</h2>
+            <div class="input-group">
+                <label>Период прогноза (лет)</label>
+                <input type="number" id="forecastPeriod" value="5" min="1" max="10">
+            </div>
+            <div class="input-group">
+                <label>Базовый денежный поток (млн руб.)</label>
+                <input type="number" id="cf1" value="100">
+            </div>
+            <div class="input-group">
+                <label>Темп роста 1-5 лет (%)</label>
+                <input type="number" id="growthRate1" value="8" step="0.1">
+            </div>
+            <div class="input-group">
+                <label>Темп роста 6+ лет (%)</label>
+                <input type="number" id="growthRate2" value="3" step="0.1">
+            </div>
+            <div class="input-group">
+                <label>Ставка налога на прибыль (%)</label>
+                <input type="number" id="taxRate" value="20" step="0.1">
+            </div>
+            <div class="input-group">
+                <label>Амортизация (млн руб.)</label>
+                <input type="number" id="amortization" value="10">
+            </div>
+            <div class="input-group">
+                <label>Безрисковая ставка (%)</label>
+                <input type="number" id="riskFreeRate" value="5">
+            </div>
+            <div class="input-group">
+                <label>Премия за рыночный риск (%)</label>
+                <input type="number" id="marketRiskPremium" value="6">
+            </div>
+            <div class="input-group">
+                <label>Бета-коэффициент</label>
+                <input type="number" id="beta" value="1.2">
+            </div>
+            <div class="input-group">
+                <label>Стоимость долга (%)</label>
+                <input type="number" id="costOfDebt" value="8">
+            </div>
+            <div class="input-group">
+                <label>Доля долга (%)</label>
+                <input type="number" id="debtRatio" value="30">
+            </div>
+            <div class="input-group">
+                <label>Дисконт за ликвидность (%)</label>
+                <input type="number" id="liquidityDiscount" value="15" step="1">
+            </div>
+            <div class="input-group">
+                <label>Премия за контроль (%)</label>
+                <input type="number" id="controlPremium" value="0" step="1">
+            </div>
+        </div>
+        <!-- Рыночный подход -->
+        <div class="panel">
+            <h2>Рыночный подход</h2>
+            <div class="input-group">
+                <label>Цена аналога (млн руб.)</label>
+                <input type="number" id="comparablePrice" value="120">
+            </div>
+            <div class="input-group">
+                <label>Корректировка за размер (%)</label>
+                <input type="number" id="sizeAdjustment" value="-10" step="1">
+            </div>
+            <div class="input-group">
+                <label>Корректировка за ликвидность (%)</label>
+                <input type="number" id="marketLiquidityAdj" value="-5" step="1">
+            </div>
+            <div class="input-group">
+                <label>Количество сопоставимых компаний</label>
+                <input type="number" id="compsCount" value="3" min="1" max="10">
+            </div>
+        </div>
+        <!-- Затратный подход -->
+        <div class="panel">
+            <h2>Затратный подход</h2>
+            <div class="input-group">
+                <label>Стоимость замещения (млн руб.)</label>
+                <input type="number" id="replacementCost" value="150">
+            </div>
+            <div class="input-group">
+                <label>Стоимость земли (млн руб.)</label>
+                <input type="number" id="landValue" value="30">
+            </div>
+            <div class="input-group">
+                <label>Физический износ (%)</label>
+                <input type="number" id="physicalDepreciation" value="15" step="1">
+            </div>
+            <div class="input-group">
+                <label>Функциональное устаревание (%)</label>
+                <input type="number" id="functionalObsolescence" value="5" step="1">
+            </div>
+            <div class="input-group">
+                <label>Экономическое устаревание (%)</label>
+                <input type="number" id="economicObsolescence" value="10" step="1">
+            </div>
+            <div class="input-group">
+                <label>Стоимость демонтажа (млн руб.)</label>
+                <input type="number" id="dismantlingCost" value="5" step="1">
+            </div>
+        </div>
+    </div>
+    <!-- Управление весами -->
+    <div class="panel weight-controls" style="margin: 0 20px;">
+        <h2>Настройка весов методов оценки</h2>
+        <div class="input-group">
+            <label>Доходный подход (DCF)</label>
+            <input type="number" id="dcfWeight" class="weight-input" value="50" min="0" max="100"> %
+        </div>
+        <div class="input-group">
+            <label>Рыночный подход</label>
+            <input type="number" id="marketWeight" class="weight-input" value="30" min="0" max="100"> %
+        </div>
+        <div class="input-group">
+            <label>Затратный подход</label>
+            <input type="number" id="costWeight" class="weight-input" value="20" min="0" max="100"> %
+        </div>
+        <button onclick="resetWeights()" class="secondary">Сбросить к рекомендуемым</button>
+        <div id="weightError" class="error-message"></div>
+    </div>
+    <div class="panel" style="margin: 20px;">
+        <button onclick="calculateAll()" class="success">Рассчитать оценку</button>
+        <div id="errorMessage" class="error-message"></div>        
+        <div id="successMessage" class="success-message"></div>
+    </div>
+    <div class="panel" style="margin: 20px;">
+        <h2>Результаты оценки</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Метод</th>
+                    <th>Стоимость (млн руб.)</th>
+                    <th>Уровень</th>
+                    <th>Вес</th>
+                    <th>Взвешенная стоимость</th>
+                </tr>
+            </thead>
+            <tbody id="methodsComparison">
+                <!-- Заполняется скриптом -->
+            </tbody>
+        </table>
+        <div class="input-group" style="margin-top: 20px;">
+            <label>Итоговая справедливая стоимость</label>
+            <input type="text" id="finalValue" readonly style="font-weight: bold; font-size: 18px;">
+        </div>
+        <div class="chart-container">
+            <canvas id="comparisonChart"></canvas>
+        </div>
+        <div class="input-group">
+            <label>Примечания и допущения</label>
+            <textarea id="valuationNotes" rows="3" placeholder="Укажите обоснование выбранных весов и другие допущения..."></textarea>
+        </div>
+        <div class="panel" style="margin: 20px;">
+            <h2>Анализ чувствительности</h2>
+            <table id="sensitivityTable">
+                <thead>
+                    <tr>
+                        <th>Параметр</th>
+                        <th>-10%</th>
+                        <th>Базовое</th>
+                        <th>+10%</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Заполняется скриптом -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <!-- Блок с ресурсами -->
+    <div class="resources">
+        <h2>Полезные ресурсы по IFRS 13</h2>
+        <ul>
+            <li><a href="https://minfin.gov.ru/ru/document/?id_4=117324" target="_blank">Международный стандарт финансовой отчетности (IFRS) 13 «Оценка справедливой стоимости»</a> - Сайт Минфин РФ.</li>
+            <li><a href="https://www.ifrs.org/issued-standards/list-of-standards/ifrs-13-fair-value-measurement/" target="_blank">Официальный текст стандарта IFRS 13 (англ.)</a> - Полный текст стандарта на сайте IFRS Foundation</li>
+            <li><a href="https://www.audit-it.ru/articles/msfo/a1029271/1034391.html" target="_blank">IFRS 13 "Оценка справедливой стоимости"</a> - Сайт audit-it.ru</li>
+            <li><a href="https://kontur.ru/articles/5975" target="_blank">Оценка справедливой стоимости активов по МСФО</a> -  Сайт kontur.ru от 21 дек. 2020</li>
+            <li><a href="https://www.accaglobal.com/russia/ru/qualifications/dipifr-rus/exam_structure/technical-articles/IFRS13_fair_value_measurement.html" target="_blank">МСФО (IFRS) 13 – Оценка справедливой стоимости</a> - Сайт accaglobal.com</li>
+        </ul>
+    </div>
+    <!-- Блок с текстом об отказе от ответственности -->
+    <div class="disclaimer">
+        <p><strong>Отказ от ответственности:</strong></p>
+        <p>Используя данный калькулятор, вы соглашаетесь с тем, что все расчеты носят ориентировочный характер и не заменяют профессиональных финансовых или юридических консультаций. Автор не несёт ответственности за любые решения, принятые на основе данных, полученных с помощью данного сервиса.</p>
+        <p>Для получения точной информации обратитесь к официальным источникам</a> или проконсультируйтесь со специалистами.</p>
+    </div>
+    <!-- Подвал -->
+    <footer>
+        <p>&copy; Copyright 2025 Смоленышев Олег Вячеславович. ИНН 771800842058. ОГРН 323774600351922</p>
+        <p>Email: <a href="mailto:smolenishev@otter-finance.ru">smolenishev@otter-finance.ru</a></p>
+        <p>Бета - версия (0.9.1) от 2025-03-25</p>
+    </footer>
+
+    <script>
+        // Глобальные переменные
+        let results = {
+            dcf: null,
+            market: null,
+            cost: null,
+            final: null
+        };
+        let charts = {
+            comparison: null
+        };
+
+        // Инициализация
+        window.onload = function() {
+            calculateAll();
+        };
+
+        // Основная функция расчета
+        function calculateAll() {
+            const errorElement = document.getElementById('errorMessage');
+            const successElement = document.getElementById('successMessage');
+            const weightErrorElement = document.getElementById('weightError');
+            errorElement.textContent = '';
+            successElement.textContent = '';
+            weightErrorElement.textContent = '';
+            try {
+                // Проверка наличия всех необходимых элементов
+                const requiredElements = [
+                    'forecastPeriod', 'cf1', 'growthRate1', 'growthRate2', 'riskFreeRate',
+                    'marketRiskPremium', 'beta', 'liquidityDiscount', 'controlPremium', 'comparablePrice',
+                    'sizeAdjustment', 'marketLiquidityAdj', 'compsCount', 'replacementCost',
+                    'landValue', 'physicalDepreciation', 'functionalObsolescence',
+                    'economicObsolescence', 'dismantlingCost', 'dcfWeight', 'marketWeight', 'costWeight'
+                ];
+
+                for (const id of requiredElements) {
+                    if (!document.getElementById(id)) {
+                        throw new Error(`Элемент с id="${id}" не найден в DOM`);
+                    }
+                }
+
+                // Проверка весов
+                if (!validateWeights()) {
+                    throw new Error("Проверьте введенные веса методов");
+                }
+
+                // Расчет всех методов
+                results.dcf = calculateDCF();
+                results.market = calculateMarketApproach();
+                results.cost = calculateCostApproach();
+
+                // Расчет итоговой взвешенной стоимости
+                calculateFinalValue();
+
+                // Обновление интерфейса
+                updateMethodsComparison();
+                updateComparisonChart();
+                successElement.textContent = 'Расчет успешно выполнен!';
+            } catch (error) {
+                console.error("Calculation error:", error);
+                errorElement.textContent = `Ошибка: ${error.message}`;
+            }
+        }
+
+        // Проверка корректности весов
+        function validateWeights() {
+            const dcf = parseInt(document.getElementById('dcfWeight').value) || 0;
+            const market = parseInt(document.getElementById('marketWeight').value) || 0;
+            const cost = parseInt(document.getElementById('costWeight').value) || 0;
+            const total = dcf + market + cost;
+            const errorElement = document.getElementById('weightError');
+            if (total !== 100) {
+                errorElement.textContent = `Сумма весов ${total}% (должна быть 100%)`;
+                return false;
+            }
+            return true;
+        }
+
+        // Сброс весов к рекомендуемым значениям
+        function resetWeights() {
+            document.getElementById('dcfWeight').value = 50;
+            document.getElementById('marketWeight').value = 30;
+            document.getElementById('costWeight').value = 20;
+            document.getElementById('weightError').textContent = '';
+        }
+
+        // Расчет DCF
+        function calculateDCF() {
+            const forecastPeriod = getValueOrDefault('forecastPeriod', 5);
+            const cf1 = getValueOrDefault('cf1', 100);
+            const growthRate1 = getValueOrDefault('growthRate1', 8) / 100;
+            const growthRate2 = getValueOrDefault('growthRate2', 3) / 100;
+            const taxRate = getValueOrDefault('taxRate', 20) / 100;
+            const riskFreeRate = getValueOrDefault('riskFreeRate', 5) / 100;
+            const marketRiskPremium = getValueOrDefault('marketRiskPremium', 6) / 100;
+            const beta = getValueOrDefault('beta', 1.2);
+            const costOfDebt = getValueOrDefault('costOfDebt', 8) / 100;
+            const debtRatio = getValueOrDefault('debtRatio', 30) / 100;
+            const liquidityDiscount = getValueOrDefault('liquidityDiscount', 15) / 100;
+            const controlPremium = getValueOrDefault('controlPremium', 0) / 100;
+
+            // Расчет WACC (средневзвешенной стоимости капитала)
+            const costOfEquity = riskFreeRate + beta * marketRiskPremium;
+            const discountRate = debtRatio * costOfDebt * (1 - taxRate) + 
+                                (1 - debtRatio) * costOfEquity;
+
+            // Проверки
+            if (discountRate <= growthRate2) {
+                throw new Error("Ставка дисконтирования должна быть больше темпа роста в терминальный период");
+            }
+
+            // Расчет денежных потоков
+            const cashFlows = [];
+            let cf = cf1;
+            for (let i = 1; i <= forecastPeriod; i++) {
+                cashFlows.push(cf);
+                cf *= (1 + growthRate1);
+            }
+
+            // Терминальная стоимость
+            const terminalValue = cf * (1 + growthRate2) / (discountRate - growthRate2);
+
+            // Дисконтирование
+            let pv = 0;
+            for (let i = 0; i < cashFlows.length; i++) {
+                pv += cashFlows[i] / Math.pow(1 + discountRate, i + 1);
+            }
+            pv += terminalValue / Math.pow(1 + discountRate, forecastPeriod);
+
+            // Корректировки
+            pv *= (1 - liquidityDiscount);
+            pv *= (1 + controlPremium);
+            return {
+                value: pv,
+                level: "Level 3",
+                details: {
+                    cashFlows: cashFlows,
+                    terminalValue: terminalValue,
+                    pvBeforeAdjustments: pv / ((1 - liquidityDiscount) * (1 + controlPremium)),
+                    wacc: discountRate * 100
+                }
+            };
+        }
+
+        // Рыночный подход
+        function calculateMarketApproach() {
+            const comparablePrice = getValueOrDefault('comparablePrice', 120);
+            const sizeAdjustment = getValueOrDefault('sizeAdjustment', -10) / 100;
+            const marketLiquidityAdj = getValueOrDefault('marketLiquidityAdj', -5) / 100;
+            const compsCount = getValueOrDefault('compsCount', 3);
+            if (compsCount === 0) return { value: null, level: "N/A" };
+
+            // Расчет стоимости с корректировками
+            let value = comparablePrice * (1 + sizeAdjustment) * (1 + marketLiquidityAdj);
+
+            // Определение уровня
+            let level;
+            if (compsCount >= 5 && Math.abs(sizeAdjustment) < 0.05 && Math.abs(marketLiquidityAdj) < 0.05) {
+                level = "Level 1";
+            } else if (compsCount >= 3) {
+                level = "Level 2";
+            } else {
+                level = "Level 3";
+            }
+            return {
+                value: value,
+                level: level,
+                details: {
+                    compsCount: compsCount,
+                    adjustments: {
+                        size: sizeAdjustment,
+                        liquidity: marketLiquidityAdj
+                    }
+                }
+            };
+        }
+
+        // Затратный подход
+        function calculateCostApproach() {
+            const replacementCost = getValueOrDefault('replacementCost', 150);
+            const landValue = getValueOrDefault('landValue', 30);
+            const physicalDepreciation = getValueOrDefault('physicalDepreciation', 15) / 100;
+            const functionalObsolescence = getValueOrDefault('functionalObsolescence', 5) / 100;
+            const economicObsolescence = getValueOrDefault('economicObsolescence', 10) / 100;
+            const dismantlingCost = getValueOrDefault('dismantlingCost', 5);
+
+            // Проверки
+            if (physicalDepreciation < 0 || physicalDepreciation > 1 ||
+                functionalObsolescence < 0 || functionalObsolescence > 1 ||
+                economicObsolescence < 0 || economicObsolescence > 1) {
+                throw new Error("Проценты износа должны быть между 0 и 100%");
+            }
+
+            // Расчет износа только для улучшений (без земли)
+            const improvementsValue = replacementCost - landValue;
+            const totalDepreciation = 1 - (1 - physicalDepreciation) *
+                                    (1 - functionalObsolescence) *
+                                    (1 - economicObsolescence);
+            const depreciatedImprovements = improvementsValue * (1 - totalDepreciation);
+            const value = landValue + depreciatedImprovements - dismantlingCost;
+            return {
+                value: value,
+                level: "Level 2",
+                details: {
+                    landValue: landValue,
+                    improvementsValue: improvementsValue,
+                    depreciatedImprovements: depreciatedImprovements,
+                    totalDepreciation: totalDepreciation * 100,
+                    dismantlingCost: dismantlingCost
+                }
+            };
+        }
+
+        // Расчет итоговой взвешенной стоимости
+        function calculateFinalValue() {
+            const dcfWeight = getValueOrDefault('dcfWeight', 50) / 100;
+            const marketWeight = getValueOrDefault('marketWeight', 30) / 100;
+            const costWeight = getValueOrDefault('costWeight', 20) / 100;
+            const validMethods = [];
+
+            if (results.dcf && !isNaN(results.dcf.value)) {
+                validMethods.push({
+                    method: 'DCF',
+                    value: results.dcf.value,
+                    weight: dcfWeight
+                });
+            }
+            if (results.market && !isNaN(results.market.value)) {
+                validMethods.push({
+                    method: 'Рыночный',
+                    value: results.market.value,
+                    weight: marketWeight
+                });
+            }
+            if (results.cost && !isNaN(results.cost.value)) {
+                validMethods.push({
+                    method: 'Затратный',
+                    value: results.cost.value,
+                    weight: costWeight
+                });
+            }
+            if (validMethods.length === 0) {
+                results.final = null;
+                return;
+            }
+
+            // Взвешенная стоимость
+            const weightedValue = validMethods.reduce((sum, m) => sum + m.value * m.weight, 0);
+            results.final = {
+                value: weightedValue,
+                methods: validMethods
+            };
+        }
+
+        // Обновление таблицы сравнения методов
+        function updateMethodsComparison() {
+            let html = '';
+            if (results.dcf && !isNaN(results.dcf.value)) {
+                const weight = getValueOrDefault('dcfWeight', 50) + '%';
+                const weightedValue = results.dcf.value * getValueOrDefault('dcfWeight', 50) / 100;
+                html += `
+                    <tr>
+                        <td>Доходный подход (DCF)</td>
+                        <td>${formatMoney(results.dcf.value)}</td>
+                        <td><span class="badge badge-level3">Level 3</span></td>
+                        <td>${weight}</td>
+                        <td>${formatMoney(weightedValue)}</td>
+                    </tr>
+                `;
+            }
+            if (results.market && !isNaN(results.market.value)) {
+                const weight = getValueOrDefault('marketWeight', 30) + '%';
+                const weightedValue = results.market.value * getValueOrDefault('marketWeight', 30) / 100;
+                html += `
+                    <tr>
+                        <td>Рыночный подход</td>
+                        <td>${formatMoney(results.market.value)}</td>
+                        <td><span class="badge badge-level${results.market.level.slice(-1)}">${results.market.level}</span></td>
+                        <td>${weight}</td>
+                        <td>${formatMoney(weightedValue)}</td>
+                    </tr>
+                `;
+            }
+            if (results.cost && !isNaN(results.cost.value)) {
+                const weight = getValueOrDefault('costWeight', 20) + '%';
+                const weightedValue = results.cost.value * getValueOrDefault('costWeight', 20) / 100;
+                html += `
+                    <tr>
+                        <td>Затратный подход</td>
+                        <td>${formatMoney(results.cost.value)}</td>
+                        <td><span class="badge badge-level2">Level 2</span></td>
+                        <td>${weight}</td>
+                        <td>${formatMoney(weightedValue)}</td>
+                    </tr>
+                `;
+            }
+            if (!html) {
+                html = `<tr><td colspan="5">Нет данных для сравнения</td></tr>`;
+            }
+            document.getElementById('methodsComparison').innerHTML = html;
+
+            // Итоговая стоимость
+            const finalValueElement = document.getElementById('finalValue');
+            if (results.final && !isNaN(results.final.value)) {
+                finalValueElement.value = formatMoney(results.final.value) + ' млн руб.';
+            } else {
+                finalValueElement.value = "Недостаточно данных";
+            }
+        }
+
+        // Обновление графика сравнения
+        function updateComparisonChart() {
+            const ctx = document.getElementById('comparisonChart');
+            if (!ctx) return;
+            if (charts.comparison) {
+                charts.comparison.destroy();
+            }
+            const methods = [];
+            const values = [];
+            const weights = [];
+            const colors = [];
+
+            if (results.dcf && !isNaN(results.dcf.value)) {
+                methods.push('DCF');
+                values.push(results.dcf.value);
+                weights.push(getValueOrDefault('dcfWeight', 50));
+                colors.push('rgba(231, 76, 60, 0.7)');
+            }
+            if (results.market && !isNaN(results.market.value)) {
+                methods.push('Рыночный');
+                values.push(results.market.value);
+                weights.push(getValueOrDefault('marketWeight', 30));
+                colors.push('rgba(241, 196, 15, 0.7)');
+            }
+            if (results.cost && !isNaN(results.cost.value)) {
+                methods.push('Затратный');
+                values.push(results.cost.value);
+                weights.push(getValueOrDefault('costWeight', 20));
+                colors.push('rgba(46, 204, 113, 0.7)');
+            }
+            if (methods.length === 0) {
+                ctx.style.display = 'none';
+                return;
+            }
+            ctx.style.display = 'block';
+            charts.comparison = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: methods,
+                    datasets: [{
+                        label: 'Справедливая стоимость (млн руб.)',
+                        data: values,
+                        backgroundColor: colors,
+                        borderColor: colors.map(c => c.replace('0.7', '1')),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'млн руб.'
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                afterLabel: function(context) {
+                                    const index = context.dataIndex;
+                                    return `Вес: ${weights[index]}%`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Форматирование денежных значений
+        function formatMoney(value) {
+            if (isNaN(value)) return "N/A";
+            return value.toFixed(1).replace(/\d(?=(\d{3})+\.)/g, '$& ').replace('.0', '');
+        }
+
+        // Вспомогательная функция для получения значений с проверкой
+        function getValueOrDefault(id, defaultValue) {
+            const element = document.getElementById(id);
+            if (!element) {
+                console.warn(`Элемент с id="${id}" не найден. Используется значение по умолчанию: ${defaultValue}`);
+                return defaultValue;
+            }
+            const value = parseFloat(element.value);
+            return isNaN(value) ? defaultValue : value;
+        }
+    </script>
+</body>
+</html>
